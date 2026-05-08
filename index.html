@@ -244,3 +244,236 @@
     <script src="game.js"></script>
   </body>
 </html>
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>贪吃蛇游戏</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Arial", sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+      }
+
+      .container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        max-width: 500px;
+        width: 100%;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      /* 速度选择界面 */
+      .speed-selection {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .speed-options {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+        width: 100%;
+      }
+
+      .speed-btn {
+        padding: 10px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+
+      .speed-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .speed-btn.selected {
+        background: #4299e1;
+        box-shadow: 0 0 15px rgba(66, 153, 225, 0.5);
+      }
+
+      .confirm-btn {
+        padding: 12px 30px;
+        border: none;
+        border-radius: 10px;
+        background: #48bb78;
+        color: white;
+        cursor: pointer;
+        font-size: 16px;
+        transition: all 0.3s ease;
+        margin-top: 10px;
+      }
+
+      .confirm-btn:hover {
+        background: #38a169;
+        transform: translateY(-2px);
+      }
+
+      .confirm-btn:disabled {
+        background: #718096;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* 游戏界面 */
+      .game-interface {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .game-info {
+        display: flex;
+        justify-content: space-between;
+        width: 100%;
+        margin-bottom: 15px;
+        font-size: 18px;
+      }
+
+      .score,
+      .high-score,
+      .current-speed {
+        background: rgba(255, 255, 255, 0.2);
+        padding: 8px 15px;
+        border-radius: 10px;
+      }
+
+      canvas {
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        background: #2d3748;
+      }
+
+      .game-controls {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+      }
+
+      .control-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 14px;
+      }
+
+      .control-btn:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+
+      .control-btn:disabled {
+        background: #718096;
+        cursor: not-allowed;
+      }
+
+      .game-instructions {
+        margin-top: 20px;
+        text-align: center;
+        font-size: 14px;
+        opacity: 0.8;
+      }
+
+      .game-over {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0, 0, 0, 0.8);
+        padding: 20px;
+        border-radius: 10px;
+        text-align: center;
+        display: none;
+      }
+
+      .game-over h2 {
+        color: #f56565;
+        margin-bottom: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>贪吃蛇游戏</h1>
+
+      <!-- 速度选择界面 -->
+      <div class="speed-selection" id="speedSelection">
+        <h2>选择游戏速度</h2>
+        <div class="speed-options">
+          <button class="speed-btn" data-speed="200">慢速 (200ms)</button>
+          <button class="speed-btn" data-speed="150">中速 (150ms)</button>
+          <button class="speed-btn" data-speed="100">快速 (100ms)</button>
+          <button class="speed-btn" data-speed="70">超速 (70ms)</button>
+          <button class="speed-btn" data-speed="40">极速 (40ms)</button>
+        </div>
+        <button class="confirm-btn" id="confirmSpeed" disabled>确认速度</button>
+      </div>
+
+      <!-- 游戏界面 -->
+      <div class="game-interface" id="gameInterface">
+        <div class="game-info">
+          <div class="score">得分: <span id="score">0</span></div>
+          <div class="high-score">最高分: <span id="highScore">0</span></div>
+          <div class="current-speed">
+            速度: <span id="speedDisplay">中速</span>
+          </div>
+        </div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div class="game-controls">
+          <button class="control-btn" id="startBtn">开始游戏</button>
+          <button class="control-btn" id="pauseBtn" disabled>暂停</button>
+          <button class="control-btn" id="resetBtn">重置</button>
+          <button class="control-btn" id="returnBtn">返回</button>
+        </div>
+        <div class="game-instructions">
+          <p>使用方向键 ↑↓←→ 控制蛇的移动</p>
+          <p>吃到食物得分，避免撞墙和撞到自己</p>
+          <p>从第6个食物开始出现障碍物，第5个食物开始出现特殊食物</p>
+        </div>
+      </div>
+
+      <!-- 游戏结束提示 -->
+      <div class="game-over" id="gameOver">
+        <h2>游戏结束！</h2>
+        <p>最终得分: <span id="finalScore">0</span></p>
+        <button class="control-btn" onclick="resetGame()">重新开始</button>
+      </div>
+    </div>
+
+    <script src="game.js"></script>
+  </body>
+</html>
